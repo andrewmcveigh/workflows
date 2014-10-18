@@ -1,5 +1,6 @@
 (ns workflows.core
   (:require
+   [clojure.walk :refer [postwalk]]
    [schema.core :as s]))
 
 (def Fn (s/pred fn? 'fn?))
@@ -16,6 +17,15 @@
 
 (defn workflow [& tasks]
   {:position 0 :flow (vec tasks)})
+
+(defn task-fn* [form]
+  (postwalk #(cond (symbol? %) (or (resolve %) %)
+                   (list? %) (cons 'list (map task-fn* %))
+                   :else %)
+            form))
+
+(defmacro task-fn [form]
+  (task-fn* form))
 
 (defn task
   ([wait work]
