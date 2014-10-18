@@ -44,10 +44,11 @@ key, it's a waiting task.
 (use 'workflows.core)
 
 (workflow (task #(prn 5)) (task #(prn 6) #(prn 7)))
-;;=> {:position 0,
-      :flow
-      [{:workflows.core/work #<fn>
-       {:workflows.core/wait #<fn> :workflows.core/work #<fn>}]}
+
+=> {:position 0,
+    :flow
+    [{:workflows.core/work #<fn>
+     {:workflows.core/wait #<fn> :workflows.core/work #<fn>}]}
 ```
 
 Workflows are started with `#'workflows.core/work`. #'work called with
@@ -57,12 +58,13 @@ no-args functions.
 ```clojure
 
 (work (workflow (task #(prn 5)) (task #(prn 6) #(prn 7))))
-;   5
-;   6
-;=> {:waiting? true,
-     :position 1,
-     :flow [{:workflows.core/work #<fn>}
-            {:workflows.core/work #<fn>, :workflows.core/wait #<fn>}]}
+
+5
+6
+=> {:waiting? true,
+    :position 1,
+    :flow [{:workflows.core/work #<fn>}
+           {:workflows.core/work #<fn>, :workflows.core/wait #<fn>}]}
 ```
 
 When a `:workflows.core/wait` task is run, it pauses the workflow. The
@@ -76,7 +78,7 @@ somewhere. They can be kept pretty easily in a ref, or atom.
   (atom
    {"id" (workflow (task #(prn 5)) (task #(prn 6) #(prn %)))}))
 
-;=> #'user/workflows
+=> #'user/workflows
 ```
 
 Waiting tasks are often waiting for input. #'work called with args
@@ -87,18 +89,20 @@ pretty easily too.
 ```clojure
 
 (swap! workflows update-in ["id"] work)
-;   5
-;   6
-;=> {"id" {:waiting? true,
-           :position 1,
-           :flow [{:workflows.core/work #<fn>}
-                  {:workflows.core/work #<fn>, :workflows.core/wait #<fn>}]}}
+
+5
+6
+=> {"id" {:waiting? true,
+          :position 1,
+          :flow [{:workflows.core/work #<fn>}
+                 {:workflows.core/work #<fn>, :workflows.core/wait #<fn>}]}}
 
 (swap! workflows update-in ["id"] work "finished!")
-;   "finished!"
-;=> {"id" {:position 2,
-           :flow [{:workflows.core/work #<fn>}
-                  {:workflows.core/work #<fn>, :workflows.core/wait #<fn>}]}}
+
+"finished!"
+=> {"id" {:position 2,
+          :flow [{:workflows.core/work #<fn>}
+                 {:workflows.core/work #<fn>, :workflows.core/wait #<fn>}]}}
 ```
 
 You can check the status of a workflow pretty easily with `complete?`
