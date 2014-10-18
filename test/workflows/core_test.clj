@@ -7,13 +7,13 @@
 
 (def workflows
   (atom {"id" (w/workflow
-               [(w/task #(is (= 0 @sum)))
-                (w/task #(swap! sum + 5))
-                (w/task #(is (= 5 @sum)))
-                (w/task #(swap! sum dec))
-                (w/task #(is (= % @sum)) #(swap! sum - 6))
-                (w/task #(swap! sum inc))
-                (w/task #(is (= % @sum)) #(swap! sum inc))])}))
+               (w/task #(is (= 0 @sum)))
+               (w/task #(swap! sum + 5))
+               (w/task #(is (= 5 @sum)))
+               (w/task #(swap! sum dec))
+               (w/task #(swap! sum - 6) #(is (= % @sum)))
+               (w/task #(swap! sum inc))
+               (w/task #(swap! sum inc) #(is (= % @sum))))}))
 
 (deftest workflow-test
   (is (not (w/complete? ((swap! workflows update-in ["id"] w/work) "id"))))

@@ -14,11 +14,14 @@
    (s/optional-key :waiting?) s/Bool
    s/Keyword s/Any})
 
-(defn workflow [flow & {:as kvs}]
-  (merge kvs {:position 0 :flow flow}))
+(defn workflow [& tasks]
+  {:position 0 :flow (vec tasks)})
 
-(defn task [work & [wait]]
-  (merge {::work work} (if wait {::wait wait})))
+(defn task
+  ([wait work]
+     (merge (when wait {::wait wait}) {::work work}))
+  ([work]
+     (task nil work)))
 
 (defn complete? [{:keys [position flow] :as workflow}]
   (>= position (count flow)))
