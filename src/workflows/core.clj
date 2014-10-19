@@ -62,9 +62,8 @@ expected to be required only by the :waiting? ::work (fn [arg1 arg2 ...])."
       (let [{:keys [::wait ::work] :as task} (flow position)]
         (if (and wait (not waiting?))
           (assoc workflow :state (wait state) :waiting? true)
-          (recur (-> workflow
-                     (dissoc :waiting?)
-                     (assoc :state (if waiting?
-                                     (apply work state args)
-                                     (work state)))
-                     (update-in [:position] inc))))))))
+          (recur
+           (-> workflow
+               (dissoc :waiting?)
+               (assoc :state (apply work state (if waiting? (or args []) [])))
+               (update-in [:position] inc))))))))
