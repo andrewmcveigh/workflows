@@ -117,8 +117,8 @@ java Objects are not easily serializable.
 
 The `workflows.core/task-fn` macro can help with that. It creates a
 clojure record that can be invoked like a regular clojure function,
-but serializes to its source code when `pr-str` is called on it. The
-source can then be `load`ed to recreate the workflow/task.
+but serializes to its source code when `pr-str` is called on it. You
+can then `clojure.core/load` the source code to recreate the workflow/task.
 
 ```clojure
 (w/workflow (w/task (w/task-fn [] (println "Task 1"))))
