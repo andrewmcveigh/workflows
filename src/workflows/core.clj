@@ -65,5 +65,5 @@ expected to be required only by the :waiting? ::work (fn [arg1 arg2 ...])."
           (recur
            (-> workflow
                (dissoc :waiting?)
-               (assoc :state (apply work state (if waiting? (or args []) [])))
+               (assoc :state (apply work state (or (and waiting? args) [])))
                (update-in [:position] inc))))))))
