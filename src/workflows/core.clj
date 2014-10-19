@@ -28,11 +28,11 @@
   `(->TFn (list `task-fn '~args ~@(task-fn* (set args) forms))
           (fn ~args ~@forms)))
 
-(def Fn (s/pred #(or (fn? %) (satisfies? TFn %)) 'fn?))
+(def Fn (s/pred fn? 'fn?))
 
 (def Task
-  {(s/required-key ::work) Fn
-   (s/optional-key ::wait) Fn})
+  {(s/required-key ::work) (s/either Fn TFn)
+   (s/optional-key ::wait) (s/either Fn TFn)})
 
 (def Workflow
   {(s/required-key :position) s/Int
