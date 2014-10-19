@@ -20,7 +20,7 @@ If you are using Maven, add the following repository definition to your `pom.xml
 With Leiningen:
 
 ``` clj
-[com.andrewmcveigh/workflows "0.1.0-SNAPSHOTS"]
+[com.andrewmcveigh/workflows "0.1.0"]
 ```
 
 The most recent release [can be found on Clojars](https://clojars.org/com.andrewmcveigh/workflows).
@@ -107,6 +107,33 @@ pretty easily too.
 
 You can check the status of a workflow pretty easily with `complete?`
 or `:waiting?` aswell.
+
+### Serialization
+
+Often workflows will need to be saved or transmitted. As workflows are
+just maps they can be serialized easily with
+`clojure.core/pr-str`. Unfortunately though, clojure functions, and
+java Objects are not easily serializable.
+
+The `workflows.core/task-fn` macro can help with that. It creates a
+clojure record that can be invoked like a regular clojure function,
+but serializes to its source code when `pr-str` is called on it. You
+can then `clojure.core/load` the source code to recreate the workflow/task.
+
+```clojure
+(w/workflow (w/task (w/task-fn [] (println "Task 1"))))
+=> {:position 0,
+    :flow [{:workflows.core/work
+            (workflows.core/task-fn [] (clojure.core/println "Task 1"))}]}
+
+(pr-str (w/workflow (w/task (w/task-fn [] (println "Task 1")))))
+=> "{:position 0, :flow [{:workflows.core/work (workflows.core/task-fn [] ..."
+
+(load-string (pr-str (w/workflow (w/task (w/task-fn [] (println "Task 1"))))))
+=> {:position 0,
+    :flow [{:workflows.core/work
+            (workflows.core/task-fn [] (clojure.core/println "Task 1"))}]}
+```
 
 ## License
 
