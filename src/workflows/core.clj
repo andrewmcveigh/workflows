@@ -1,30 +1,17 @@
 (ns workflows.core
   (:require
    [clojure.walk :refer [postwalk]]
-   [schema.core :as s]))
+   [schema.core :as s]
+   [workflows.internal.core :refer [defrecordfn]]))
 
-(defrecord TFn [form f])
+(defrecordfn TFn [form f]
+  (fn [_ & args] (apply f args)))
 
 (defmethod print-dup TFn [o w]
   (.write w (pr-str (:form o))))
 
 (defmethod print-method TFn [o w]
   (.write w (pr-str (:form o))))
-
-(def Fn (s/pred #(or (fn? %) (satisfies? TFn %)) 'fn?))
-
-(def Task
-  {(s/required-key ::work) Fn
-   (s/optional-key ::wait) Fn})
-
-(def Workflow
-  {(s/required-key :position) s/Int
-   (s/required-key :flow) [Task]
-   (s/optional-key :waiting?) s/Bool
-   s/Keyword s/Any})
-
-(defn workflow [& tasks]
-  {:position 0 :flow (vec tasks)})
 
 (defn qualify [s]
   (when-let [m (some-> (resolve s) (meta))]
@@ -40,6 +27,21 @@
 (defmacro task-fn [args & forms]
   `(->TFn (list `task-fn '~args ~@(task-fn* (set args) forms))
           (fn ~args ~@forms)))
+
+(def Fn (s/pred #(or (fn? %) (satisfies? TFn %)) 'fn?))
+
+(def Task
+  {(s/required-key ::work) Fn
+   (s/optional-key ::wait) Fn})
+
+(def Workflow
+  {(s/required-key :position) s/Int
+   (s/required-key :flow) [Task]
+   (s/optional-key :waiting?) s/Bool
+   s/Keyword s/Any})
+
+(defn workflow [& tasks]
+  {:position 0 :flow (vec tasks)})
 
 (defn task
   ([wait work]
