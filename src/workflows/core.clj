@@ -37,11 +37,11 @@
 (def Workflow
   {(s/required-key :position) s/Int
    (s/required-key :flow) [Task]
-   (s/optional-key :waiting?) s/Bool
-   s/Keyword s/Any})
+   (s/required-key :state) s/Any
+   (s/optional-key :waiting?) s/Bool})
 
-(defn workflow [& tasks]
-  {:position 0 :flow (vec tasks)})
+(s/defn ^:always-validate workflow :- Workflow [init-state & tasks :- [Task]]
+  {:position 0 :state init-state :flow (vec tasks)})
 
 (defn task
   ([wait work]
@@ -56,16 +56,15 @@
   "Put a Workflow to work, or restart a waiting Workflow. & args are
 expected to be required only by the :waiting? ::work (fn [arg1 arg2 ...])."
   [workflow :- Workflow & args]
-  (loop [{:keys [position flow waiting?] :as workflow} workflow]
+  (loop [{:keys [position state flow waiting?] :as workflow} workflow]
     (if (complete? workflow)
       workflow
       (let [{:keys [::wait ::work] :as task} (flow position)]
         (if (and wait (not waiting?))
-          (do
-            (wait)
-            (assoc workflow :waiting? true))
-          (let [workflow (dissoc workflow :waiting?)]
-            (if waiting?
-              (apply (::work task) args)
-              ((::work task)))
-            (recur (update-in workflow [:position] inc))))))))
+          (assoc workflow :state (wait state) :waiting? true)
+          (recur (-> workflow
+                     (dissoc :waiting?)
+                     (assoc :state (if waiting?
+                                     (apply work state args)
+                                     (work state)))
+                     (update-in [:position] inc))))))))
