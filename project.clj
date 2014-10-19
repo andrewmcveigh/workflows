@@ -1,4 +1,4 @@
-(defproject com.andrewmcveigh/workflows "0.1.0-SNAPSHOT"
+(defproject com.andrewmcveigh/workflows "0.1.0"
   :description "Workflow Schema and engine"
   :url "http://github.com/andrewmcveigh/workflows"
   :license {:name "Eclipse Public License - v 1.0"
