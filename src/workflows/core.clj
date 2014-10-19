@@ -3,7 +3,15 @@
    [clojure.walk :refer [postwalk]]
    [schema.core :as s]))
 
-(def Fn (s/pred fn? 'fn?))
+(defrecord TFn [form f])
+
+(defmethod print-dup TFn [o w]
+  (.write w (pr-str (:form o))))
+
+(defmethod print-method TFn [o w]
+  (.write w (pr-str (:form o))))
+
+(def Fn (s/pred #(or (fn? %) (satisfies? TFn %)) 'fn?))
 
 (def Task
   {(s/required-key ::work) Fn
@@ -18,14 +26,20 @@
 (defn workflow [& tasks]
   {:position 0 :flow (vec tasks)})
 
-(defn task-fn* [form]
-  (postwalk #(cond (symbol? %) (or (resolve %) %)
-                   (list? %) (cons 'list (map task-fn* %))
-                   :else %)
+(defn qualify [s]
+  (when-let [m (some-> (resolve s) (meta))]
+    (list 'quote (symbol (str (:ns m)) (name (:name m))))))
+
+(defn task-fn* [args form]
+  (postwalk (fn [f]
+              (cond (symbol? f) (if (args f) `'~f (or (qualify f) f))
+                    (list? f) (cons 'list f)
+                    :else f))
             form))
 
-(defmacro task-fn [form]
-  (task-fn* form))
+(defmacro task-fn [args & forms]
+  `(->TFn (list `task-fn '~args ~@(task-fn* (set args) forms))
+          (fn ~args ~@forms)))
 
 (defn task
   ([wait work]
