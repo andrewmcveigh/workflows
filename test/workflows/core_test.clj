@@ -21,6 +21,13 @@
          (w/task (w/task-fn [state] (swap! sum inc))
                  (w/task-fn [state x] (is (= x @sum)))))})
 
+(defn state-workflow []
+  {"id" (w/workflow
+         {:num 0}
+         (w/task (w/task-fn [state] (update-in state [:num] inc)))
+         (w/task (w/task-fn [state] (update-in state [:num] inc)))
+         (w/task (w/task-fn [state] (update-in state [:num] inc))))})
+
 (deftest workflow-test
   (reset! workflows (create-new-workflow))
   (is (not (w/complete? ((swap! workflows update-in ["id"] w/work) "id"))))
@@ -43,3 +50,9 @@
     (is (= (pr-str wf1) (pr-str wf2)))
     (is (= (jfn wf1) (jfn wf2)))
     (is (= (jfn (w/work wf1 5)) (jfn (w/work wf2 5))))))
+
+(deftest state-test
+  (is (= 3 (-> ((state-workflow) "id")
+               w/work
+               :state
+               :num))))
