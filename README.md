@@ -20,7 +20,7 @@ If you are using Maven, add the following repository definition to your `pom.xml
 With Leiningen:
 
 ``` clj
-[com.andrewmcveigh/workflows "0.1.0"]
+[com.andrewmcveigh/workflows "0.2.0"]
 ```
 
 The most recent release [can be found on Clojars](https://clojars.org/com.andrewmcveigh/workflows).
